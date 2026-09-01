@@ -120,11 +120,20 @@ def load_dictionary(dname, cmuformat=True):
 
         with open(dname, 'r') as d:
             for line in d:
+                line = line.strip()
+                if not line or line.startswith(';;;'):
+                    continue
                 all_items = line.split()
+                if len(all_items) < 2:
+                    continue
                 word = all_items[0]
                 word = re.sub(r'\(\d*\)', '', word)
-                pronunciation = all_items[1:]
+                # NLTK cmudict uses ``WORD <variant_index> PHONE ...``; skip the index.
+                pron_start = 2 if len(all_items) >= 3 and all_items[1].isdigit() else 1
+                pronunciation = all_items[pron_start:]
                 pronunciation = [fold_phone(p) for p in pronunciation]
+                if not pronunciation:
+                    continue
                 
                 if word not in mapping:
                     mapping[word] = [pronunciation]

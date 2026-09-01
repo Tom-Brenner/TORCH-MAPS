@@ -3,14 +3,15 @@ import argparse
 def build_arg_parser():
 
     p = argparse.ArgumentParser(
-        description='''Mason-Alberta Phonetic Segmenter (MAPS). Phonetically segments a file or files in a directory given transcription(s) and a grapheme-to-phoneme dictionary. Passed in directories will be processed at the top level only and will not be processed recursively.
+        description='''torch-maps: PyTorch Mason-Alberta Phonetic Segmenter (MAPS). Phonetically segments a file or files in a directory given transcription(s) and a grapheme-to-phoneme dictionary. Passed in directories will be processed at the top level only and will not be processed recursively.
         
         Arguments that take values may use "=" or not. For example, both "--audio=s.wav" and "--audio s.wav" will work correctly.'''
     )
 
     p.add_argument('--audio', help='A WAV file or a directory containing WAV files', required=True)
     p.add_argument('--text', help='A txt file with an orthographic transcription or a directory with such files', required=True)
-    p.add_argument('--model', help='A tf format TensorFlow model to use for alignment; if a folder with multiple models is given, all models will be used for ensemble alignment with confidence intervals', required=True)
+    p.add_argument('--model', help='A converted .pt PyTorch checkpoint or a directory of .pt ensemble models for alignment with confidence intervals', required=True)
+    p.add_argument('--device', default='auto', choices=['auto', 'cpu', 'cuda'], help='Inference device (default: auto selects CUDA when available)')
     p.add_argument('--dict', help='A grapheme-to-phoneme dictionary like the CMU Pronouncing Dictionary', required=True)
     p.add_argument('--interp', default='true', choices=['true', 'false'], help='Whether to use interpolation or not. Default is set to true')
     p.add_argument('--resample', action='store_true', help='Resamples audio to 16,000 Hz and stores the resmampled files in a temporary folder while alignment is being performed.')

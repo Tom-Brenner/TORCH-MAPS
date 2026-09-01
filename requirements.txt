@@ -1,8 +1,9 @@
-tensorflow===2.12.1
+# torch-maps runtime (Python 3.10+). Install PyTorch separately for your platform.
 scipy
-numpy==1.24.3
+numpy>=2.0,<2.1
 tqdm
 textgrid
 python_speech_features
 natsort
 soxr
+pytest
