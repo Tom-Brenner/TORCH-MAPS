@@ -29,8 +29,8 @@ class MapsAcousticModel(nn.Module):
         self.ln3 = nn.LayerNorm(hidden_size * 2, eps=1e-3)
         self.classifier = nn.Linear(hidden_size * 2, N_CLASSES)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Accept ``[B, T, 39]``; return posterior probabilities ``[B, T, 61]``."""
+    def logits(self, x: torch.Tensor) -> torch.Tensor:
+        """Accept ``[B, T, 39]``; return unnormalized scores ``[B, T, 61]``."""
         mask = (x == self.mask_value).all(dim=-1, keepdim=True)
         x = x.masked_fill(mask, 0.0)
 
@@ -41,8 +41,11 @@ class MapsAcousticModel(nn.Module):
         x = self.ln2(x)
         x, _ = self.lstm3(x)
         x = self.ln3(x)
-        logits = self.classifier(x)
-        return torch.softmax(logits, dim=-1)
+        return self.classifier(x)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Accept ``[B, T, 39]``; return posterior probabilities ``[B, T, 61]``."""
+        return torch.softmax(self.logits(x), dim=-1)
 
     @torch.inference_mode()
     def predict_numpy(self, x: np.ndarray, device: torch.device) -> np.ndarray:
