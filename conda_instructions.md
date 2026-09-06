@@ -1,7 +1,7 @@
 # Conda environment — MAPS PyTorch alignment training
 
-Use the existing **`torch-maps`** environment for all new CMUdict-39 dataset,
-duration-prior, decoding, and end-to-end training code:
+Use the **`torch-maps`** environment for all CMUdict-39 dataset, duration-prior,
+decoding, and end-to-end training code:
 
 ```bash
 conda activate torch-maps
@@ -12,9 +12,10 @@ cd ~/MAPS
 2.12.1 but **does not contain PyTorch**, so it cannot run
 `tools/estimate_duration_prior.py` or `maps_torch/train_decoder.py`.
 
-## Verified environment
+Spec file: [`environment.yml`](environment.yml) (Python + pip deps).  
+**PyTorch is installed in a second step** so the CUDA wheel can match the machine.
 
-The local `torch-maps` env has:
+## Verified environment (local)
 
 ```text
 Python:  /home/tom/miniconda3/envs/torch-maps/bin/python
@@ -24,26 +25,49 @@ Triton:  3.1.0   (bundled with the CUDA PyTorch wheel — do not pip-pin separat
 CUDA:    available
 ```
 
-To recreate or repair it, use Python 3.10+ and install the repository
-requirements plus the CUDA-compatible PyTorch wheel appropriate for the
-machine:
+## GCP VM (fresh image — no conda)
+
+Deep Learning “common CUDA” images often have drivers/CUDA but **no conda**.
+Install Miniconda, then create `torch-maps` from the yml:
 
 ```bash
-conda create -n torch-maps python=3.10 -y
+# --- Miniconda (one-time) ---
+cd ~
+curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o miniconda.sh
+bash miniconda.sh -b -p $HOME/miniconda3
+rm miniconda.sh
+eval "$($HOME/miniconda3/bin/conda shell.bash hook)"
+conda init bash
+# open a new shell, or: source ~/.bashrc
+
+# --- torch-maps from repo ---
+cd ~/MAPS
+conda env create -f environment.yml
 conda activate torch-maps
 
-# Install PyTorch for the target GPU / CUDA runtime. Example: CUDA 12.4.
+# GPU PyTorch. cu124 wheels work with newer drivers (e.g. cu129 DL images).
 pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cu124
-pip install -r requirements.txt
-# Optional: duration histogram + prior overlay plots (Torch-MFA scripts/prepare_plot.py)
-pip install pillow
+
+python -c "import torch, triton; print(torch.__version__, torch.cuda.is_available(), triton.__version__)"
+nvidia-smi
+```
+
+If `conda` is already on `PATH` (some DL images ship `/opt/conda`), skip Miniconda
+and run only the `conda env create …` block.
+
+**Do not** `pip install triton` separately.
+
+## Recreate / repair (laptop or VM)
+
+```bash
+cd ~/MAPS
+conda env create -f environment.yml          # or: conda env update -f environment.yml --prune
+conda activate torch-maps
+pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cu124
+# Optional plots: pip install pillow
 
 python -c "import torch, triton; print(torch.__version__, torch.cuda.is_available(), triton.__version__)"
 ```
-
-On a new GCP VM, choose the PyTorch wheel to match the installed CUDA/driver
-rather than assuming `cu124` is the correct build. **Do not** `pip install triton`
-separately; use the version that ships with that PyTorch build.
 
 ## DP backends (training vs inference)
 

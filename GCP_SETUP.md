@@ -154,7 +154,8 @@ export VM=maps-decoder-train ZONE=us-west4-a
 gcloud compute instances start $VM --zone=$ZONE   # if stopped
 gcloud compute ssh $VM --zone=$ZONE
 ```
-
+ssh-keygen -t ed25519 -C "maps-vm" -f ~/.ssh/id_ed25519 -N ""
+cat ~/.ssh/id_ed25519.pub
 ---
 
 ## 6 — VM setup (on VM, one-time)
@@ -170,15 +171,28 @@ gcloud storage cp \
   gs://glen-train-data/maps_datasets/timbuck_eng.pt \
   /data/maps_datasets/
 
+ssh-keygen -t ed25519 -C "maps-vm" -f ~/.ssh/id_ed25519 -N ""
+cat ~/.ssh/id_ed25519.pub
+
 # Clone TORCH-MAPS (deploy key or HTTPS as you prefer)
 git clone git@github.com:Tom-Brenner/TORCH-MAPS.git ~/MAPS
 cd ~/MAPS
+git checkout training   # training branch has decoder + DP backends
 
-# Env: conda torch-maps or venv with torch + requirements.txt
-# pip/conda install per README; need python_speech_features only for feature
-# extraction — training uses precomputed feats in the NPZs.
+# Conda is usually missing on "common CUDA" DL images — see conda_instructions.md
+# Quick path:
+curl -fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o ~/miniconda.sh
+bash ~/miniconda.sh -b -p $HOME/miniconda3 && rm ~/miniconda.sh
+eval "$($HOME/miniconda3/bin/conda shell.bash hook)"
+conda init bash
+source ~/.bashrc
 
-python -c "import torch; print(torch.cuda.is_available(), torch.__version__)"
+cd ~/MAPS
+conda env create -f environment.yml
+conda activate torch-maps
+pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cu124
+
+python -c "import torch, triton; print(torch.__version__, torch.cuda.is_available(), triton.__version__)"
 nvidia-smi
 ```
 

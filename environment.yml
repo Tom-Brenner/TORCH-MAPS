@@ -1,0 +1,27 @@
+# torch-maps — recreate on a fresh machine (GCP Deep Learning VM, laptop, etc.)
+#
+#   # If `conda` is missing, install Miniconda first (see conda_instructions.md).
+#   conda env create -f environment.yml
+#   conda activate torch-maps
+#   # GPU PyTorch (CUDA 12.4 wheels; works with newer drivers, e.g. cu129 images):
+#   pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cu124
+#   python -c "import torch, triton; print(torch.__version__, torch.cuda.is_available(), triton.__version__)"
+#
+# Do NOT pip-pin `triton` separately — it ships with the CUDA PyTorch wheel.
+# Training uses precomputed NPZs; python_speech_features is only for feature extraction.
+
+name: torch-maps
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+      - "numpy>=2.0,<2.1"
+      - scipy
+      - tqdm
+      - textgrid
+      - python_speech_features
+      - natsort
+      - soxr
+      - pytest
