@@ -420,7 +420,8 @@ def main() -> None:
     print(
         f"train utts={len(train_ds)} val utts={len(val_ds)} "
         f"bf16={args.bf16} freeze={freeze_mode} "
-        f"trainable_params={n_train}/{n_all}"
+        f"trainable_params={n_train}/{n_all}",
+        flush=True,
     )
 
     train_loader = DataLoader(
@@ -466,11 +467,15 @@ def main() -> None:
         release_cuda_memory()
         print(
             f"Resumed from {resume_path} at epoch {start_epoch} "
-            f"(best_mae={best_mae:.4f})"
+            f"(best_mae={best_mae:.4f})",
+            flush=True,
         )
 
     if args.gcs_bucket:
-        print(f"GCS uploads enabled -> {args.gcs_bucket}/{args.gcs_prefix}")
+        print(
+            f"GCS uploads enabled -> {args.gcs_bucket}/{args.gcs_prefix}",
+            flush=True,
+        )
 
     use_b = not args.no_boundary_loss
     release_every = max(0, int(args.cuda_release_every))
@@ -504,11 +509,12 @@ def main() -> None:
                 n_batches += 1
                 # Drop graph roots so soft-DP lattices can be collected.
                 del loss
-                if n_batches % 1== 0:
+                if n_batches % 1 == 0:
                     print(
                         f"epoch {epoch} batch {n_batches} "
                         f"loss={stats['loss']:.4f} L_nll={stats['L_nll']:.4f} "
-                        f"L_b={stats['L_b']:.4f}"
+                        f"L_b={stats['L_b']:.4f}",
+                        flush=True,
                     )
                 if (
                     device.type == "cuda"
@@ -539,7 +545,8 @@ def main() -> None:
             print(
                 f"EPOCH {epoch}: train loss={running['loss']:.4f} "
                 f"L_nll={running['L_nll']:.4f} L_b={running['L_b']:.4f} "
-                f"val_boundary_MAE_frames={mae:.3f}"
+                f"val_boundary_MAE_frames={mae:.3f}",
+                flush=True,
             )
 
             improved = mae < best_mae
@@ -557,7 +564,7 @@ def main() -> None:
                 )
                 hist_path = args.out_dir / "history.json"
                 hist_path.write_text(json.dumps(history, indent=2))
-                print(f"  new best -> {best_path} (mae={best_mae:.4f})")
+                print(f"  new best -> {best_path} (mae={best_mae:.4f})", flush=True)
                 if args.gcs_bucket:
                     upload_to_gcs(best_path, args.gcs_bucket, object_prefix=args.gcs_prefix)
                     upload_to_gcs(hist_path, args.gcs_bucket, object_prefix=args.gcs_prefix)

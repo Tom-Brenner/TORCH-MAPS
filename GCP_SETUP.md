@@ -188,8 +188,13 @@ conda init bash
 source ~/.bashrc
 
 cd ~/MAPS
+# Accept Anaconda ToS if conda env create complains about channels:
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
+
 conda env create -f environment.yml
 conda activate torch-maps
+python -V   # expect 3.10.x — do not pip-install torch in (base)
 pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cu124
 
 python -c "import torch, triton; print(torch.__version__, torch.cuda.is_available(), triton.__version__)"

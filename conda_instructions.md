@@ -40,10 +40,15 @@ eval "$($HOME/miniconda3/bin/conda shell.bash hook)"
 conda init bash
 # open a new shell, or: source ~/.bashrc
 
-# --- torch-maps from repo ---
+# New Miniconda requires accepting Anaconda channel Terms of Service once:
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
+
+# --- torch-maps from repo (pins Python 3.10 — do not install torch in base) ---
 cd ~/MAPS
 conda env create -f environment.yml
 conda activate torch-maps
+python -V   # must be 3.10.x; base is often 3.13 and has no torch 2.5.1 wheel
 
 # GPU PyTorch. cu124 wheels work with newer drivers (e.g. cu129 DL images).
 pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cu124
@@ -53,9 +58,9 @@ nvidia-smi
 ```
 
 If `conda` is already on `PATH` (some DL images ship `/opt/conda`), skip Miniconda
-and run only the `conda env create …` block.
+and run only the ToS + `conda env create …` block.
 
-**Do not** `pip install triton` separately.
+**Do not** `pip install torch` in `(base)`. **Do not** `pip install triton` separately.
 
 ## Recreate / repair (laptop or VM)
 
